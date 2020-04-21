@@ -19,7 +19,7 @@ Place all of the JSON files from open pose in the same directory as the blend fi
 
 Then in the script make the top line the following so the script can readin the json file:
 
-        **FileIdentifier = "IsaacFace"**
+        FileIdentifier = "IsaacFace"
 
 In the blender file give the script the name of the armature you want to map the facial poses to:
 
