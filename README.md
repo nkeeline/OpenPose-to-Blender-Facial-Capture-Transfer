@@ -1,6 +1,9 @@
 # OpenPose-to-Blender-Facial-Capture-Transfer
 This blender Python Script maps an OpenPose Facial Capture to a blender facial Rig
 
+Example:
+https://www.youtube.com/watch?v=bzGW4TDXE-0
+
 Usage Tutorial Here:
 https://www.youtube.com/watch?v=EUR6vsE0k6E
 
