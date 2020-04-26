@@ -4,12 +4,10 @@
 ####################################################################################
 #  OpenPose to BLender Script
 #  Source: https://github.com/nkeeline/OpenPose-to-Blender-Facial-Capture-Transfer/
-#  Version 1.1  Fix for head twitch on loos of ear in capture.
+#  Version 1.2  Added tie eyelids together.
 ####################################################################################
 ####################################################################################
 ####################################################################################
-
-
 
 import bpy
 import json
@@ -41,6 +39,9 @@ eyes_KeyFrame_Every_Nth_Frame = 10
 #number of frames to transfer, make really t
 NumberOfFramesToTransfer = 1400
 keyFrame = True
+#eyelids are kind of inaccurate, so let's tie them together if
+#your not going ot wink in the video, a little more natrualif true.
+TieEyelidsTogether = True
 
 ####################################################################################
 ####################################################################################
@@ -109,11 +110,12 @@ def multiply(pt, val):
 ####################################################################################
 
 class PersonJSONData:
-  def __init__(self, pose, face, EarLobeToEarLobedistanceInBlenderUnits):
+  def __init__(self, pose, face, EarLobeToEarLobedistanceInBlenderUnits, TieEyelidsTogether):
     self.poseStart = pose
     self.faceStart = face
     self.poseCurrent = pose
     self.faceCurrent = face
+    self.TieEyelidsTogether = TieEyelidsTogether
     #distance is distance between ears
     self.distancBetweenEars = abs(GetPoint(pose, 18)[0] - GetPoint(pose, 18)[1])
     self.StartNosePosition = GetPoint(pose, 0)
@@ -305,12 +307,22 @@ class PersonJSONData:
 
 
   def getEyelidRight(self, correction):
-    output = self.ConvertPixelPointToBlenderUnits(self.getFacePosition(37,38, "righteye"))
+    if self.TieEyelidsTogether:
+        eyeR = self.getFacePosition(37,38, "righteye")
+        eyeL = self.getFacePosition(43,44, "lefteye")
+        output = self.ConvertPixelPointToBlenderUnits(AverageTwoPoints(eyeR,eyeL))
+    else:
+        output = self.ConvertPixelPointToBlenderUnits(self.getFacePosition(37,38, "righteye"))
     return multiply(output, correction)
 
 
   def getEyelidLeft(self, correction):
-    output = self.ConvertPixelPointToBlenderUnits(self.getFacePosition(43,44, "lefteye"))
+    if self.TieEyelidsTogether:
+        eyeR = self.getFacePosition(37,38, "righteye")
+        eyeL = self.getFacePosition(43,44, "lefteye")
+        output = self.ConvertPixelPointToBlenderUnits(AverageTwoPoints(eyeR,eyeL))
+    else:
+        output = self.ConvertPixelPointToBlenderUnits(self.getFacePosition(43,44, "lefteye"))
     return multiply(output, correction)
 
 
@@ -403,7 +415,7 @@ while keepGoing:
         face = myPerson['face_keypoints_2d']
         
         if FirstTime:
-            p1 = PersonJSONData(pose, face, EarLobeToEarLobedistanceInBlenderUnits)
+            p1 = PersonJSONData(pose, face, EarLobeToEarLobedistanceInBlenderUnits, TieEyelidsTogether)
             FirstTime = False
         else:
             p1.SetCurrentPose(pose, face)
