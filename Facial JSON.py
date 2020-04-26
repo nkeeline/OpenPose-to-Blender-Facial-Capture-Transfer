@@ -1,3 +1,16 @@
+
+####################################################################################
+####################################################################################
+####################################################################################
+#  OpenPose to BLender Script
+#  Source: https://github.com/nkeeline/OpenPose-to-Blender-Facial-Capture-Transfer/
+#  Version 1.1  Fix for head twitch on loos of ear in capture.
+####################################################################################
+####################################################################################
+####################################################################################
+
+
+
 import bpy
 import json
 import os.path
@@ -16,7 +29,7 @@ import mathutils
 ####################################################################################
 ####################################################################################
 
-FileIdentifier = "IsaacFace"
+FileIdentifier = "CaptureTest"
 DestArmName = "Phillip"
 #Go Into Edit mode and get delta x between earlobes
 #we know the pixel distance between ears in open pse so knowing it for the character
@@ -26,7 +39,7 @@ StartFrameNumber = 0
 mouth_KeyFrame_Every_Nth_Frame = 3
 eyes_KeyFrame_Every_Nth_Frame = 10
 #number of frames to transfer, make really t
-NumberOfFramesToTransfer = 600
+NumberOfFramesToTransfer = 1400
 keyFrame = True
 
 ####################################################################################
@@ -36,11 +49,22 @@ keyFrame = True
 ####################################################################################
 ####################################################################################
 ####################################################################################
+
+def combineRReliability(pt1, pt2):
+    rel1 = pt1[2]
+    rel2 = pt2[2]
+    if rel1 < rel2:
+        relOut = rel1
+    else:
+        relOut = rel2
+    return relOut
+
 def GetPoint (Array, index):
     baseIndex = index*3
     x = float(Array[baseIndex])
     y = float(Array[baseIndex + 1])
-    return [x,y]
+    reliability = float(Array[baseIndex + 2])
+    return [x,y,reliability]
 
     #this equation rotates the a point around a center, needed to take head tilt out of facial capture.
 def rotatePoint(point, center, angle):
@@ -48,32 +72,32 @@ def rotatePoint(point, center, angle):
     angle = math.radians(angle ) #Convert to radians
     rotatedX = math.cos(angle) * (point[0] - center[0]) - math.sin(angle) * (point[1]-center[1]) + center[0];
     rotatedY = math.sin(angle) * (point[0] - center[0]) + math.cos(angle) * (point[1] - center[1]) + center[1];
-    return [rotatedX,rotatedY]
+    return [rotatedX,rotatedY,point[2]]
 
 def AverageTwoPoints(pt1, pt2):
     avgX = (pt1[0] + pt2[0])/2
     avgY = (pt1[1] + pt2[1])/2
-    return [avgX, avgY]
+    return [avgX, avgY,combineRReliability(pt1,pt2)]
 
 def DifferenceBetweenPoint(pt1, pt2):
     diffX = (pt1[0] - pt2[0])
     diffY = (pt1[1] - pt2[1])
-    return [diffX, diffY]
+    return [diffX, diffY,combineRReliability(pt1,pt2)]
 
 def InverseXandY(pt):
     x = pt[0]*-1
     y = pt[1]*-1
-    return [x, y]
+    return [x, y, pt[2]]
 
 def InverseX(pt):
     x = pt[0]*-1
     y = pt[1]
-    return [x, y]
+    return [x, y, pt[2]]
 
 def multiply(pt, val):
     x = pt[0]*val
     y = pt[1]*val
-    return [x, y]
+    return [x, y, pt[2]]
 
 ####################################################################################
 ####################################################################################
@@ -98,6 +122,7 @@ class PersonJSONData:
     self.StartLeftEyePosition = GetPoint(pose, 16)
     #self.StartRightEyePosition = GetPoint(face, 68)
     #self.StartLeftEyePosition = GetPoint(face, 69)
+    self.LastGoodHeadTilt = 0
     self.StartHeadTilt = self.getHeadTiltSideToSide()
     self.EarLobeToEarLobedistanceInBlenderUnits = EarLobeToEarLobedistanceInBlenderUnits
 
@@ -131,7 +156,8 @@ class PersonJSONData:
   def ConvertPixelPointToBlenderUnits(self, pnt):
       pntx = pnt[0] * (self.EarLobeToEarLobedistanceInBlenderUnits/self.distancBetweenEars)
       pnty = pnt[1] * (self.EarLobeToEarLobedistanceInBlenderUnits/self.distancBetweenEars)
-      return [pntx,pnty]
+      reliability = pnt[2]
+      return [pntx,pnty,reliability]
   
   def getHeadTiltSideToSide(self):
     #We get the tils by taking the angle difference between the left and right years
@@ -139,8 +165,13 @@ class PersonJSONData:
     rightEar = GetPoint(self.poseCurrent, 17)
     deltaY = leftEar[1] - rightEar[1]
     deltaX = leftEar[0] - rightEar[0]
-    tilt = math.atan(deltaY/deltaX)
-    return math.degrees(tilt*-1)
+    if leftEar[2] < .1 or rightEar[2] < .1:
+        tiltOut = self.LastGoodHeadTilt
+    else:
+        tilt = math.atan(deltaY/deltaX)
+        tiltOut = math.degrees(tilt*-1)
+        self.LastGoodHeadTilt = tiltOut
+    return tiltOut
       
   def getHeadTiltUpDown(self):
     #get the angle by using the nose vertical translation and approximating the distance
