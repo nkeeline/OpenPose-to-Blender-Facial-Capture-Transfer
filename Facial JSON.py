@@ -4,7 +4,7 @@
 ####################################################################################
 #  OpenPose to BLender Script
 #  Source: https://github.com/nkeeline/OpenPose-to-Blender-Facial-Capture-Transfer/
-#  Version 1.2  Added tie eyelids together.
+#  Version 1.3  Added eyelide jitter rejection, but keyframe blinks.
 ####################################################################################
 ####################################################################################
 ####################################################################################
@@ -35,13 +35,16 @@ DestArmName = "Phillip"
 EarLobeToEarLobedistanceInBlenderUnits = .17463
 StartFrameNumber = 0
 mouth_KeyFrame_Every_Nth_Frame = 3
-eyes_KeyFrame_Every_Nth_Frame = 10
+eyes_KeyFrame_Every_Nth_Frame = 15
 #number of frames to transfer, make really t
 NumberOfFramesToTransfer = 1400
 keyFrame = True
 #eyelids are kind of inaccurate, so let's tie them together if
 #your not going ot wink in the video, a little more natrualif true.
 TieEyelidsTogether = True
+#If the eyelid moves more than this amount of blender units, we keyframe,
+#that way we catch fast blinks, but eliminate jitter in eyelid...
+EyelidBlinkTHreshold = .01
 
 ####################################################################################
 ####################################################################################
@@ -385,6 +388,8 @@ eyelid_r =  DestArm.pose.bones["Eyelid.r"]
 eyelid_lower_l =  DestArm.pose.bones["EyelidLower.l"]
 eyelid_lower_r =  DestArm.pose.bones["EyelidLower.r"]
 
+#going to force Eyelid Keyframe if it's drastically different
+PreviousEyelidValue = 0
 CurrentFrame = 0
 
 while keepGoing:
@@ -527,8 +532,16 @@ while keepGoing:
         #print(p1.getHeadTiltUpDown())
         #print(p1.getHeadTiltLeftRight())
         
+        #keyfram if the eyelid changes a LOT. That way we catch blinks.
+        AmountTheEyelidChanged = abs(eyelid_l.location.z - PreviousEyelidValue)
+        if AmountTheEyelidChanged > EyelidBlinkTHreshold and keyFrame:
+            eyelid_r.keyframe_insert(data_path='location',frame= StartFrameNumber + CurrentFrame)
+            eyelid_l.keyframe_insert(data_path='location',frame= StartFrameNumber + CurrentFrame)
+        
+        PreviousEyelidValue = eyelid_l.location.z
+        
         #if current frome is an exact multiple of Every Nth Frame
-        if (CurrentFrame % mouth_KeyFrame_Every_Nth_Frame == 0) & (keyFrame):
+        if (CurrentFrame % mouth_KeyFrame_Every_Nth_Frame == 0) and (keyFrame):
             head_bone.keyframe_insert(data_path='rotation_euler',frame= StartFrameNumber + CurrentFrame)
             jaw_bone.keyframe_insert(data_path='rotation_euler',frame= StartFrameNumber + CurrentFrame)
             lower_face.keyframe_insert(data_path='rotation_euler',frame= StartFrameNumber + CurrentFrame)
@@ -548,7 +561,7 @@ while keepGoing:
             Corner_lip_l.keyframe_insert(data_path='location',frame= StartFrameNumber + CurrentFrame)
 
         #if current frome is an exact multiple of Every Nth Frame
-        if (CurrentFrame % eyes_KeyFrame_Every_Nth_Frame == 0) & (keyFrame):
+        if (CurrentFrame % eyes_KeyFrame_Every_Nth_Frame == 0) and (keyFrame):
             eyebrow_outer_l.keyframe_insert(data_path='location',frame= StartFrameNumber + CurrentFrame)
             eyebrow_center_l.keyframe_insert(data_path='location',frame= StartFrameNumber + CurrentFrame)
             eyebrow_inner_l.keyframe_insert(data_path='location',frame= StartFrameNumber + CurrentFrame)
