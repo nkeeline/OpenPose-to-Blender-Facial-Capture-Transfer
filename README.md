@@ -12,6 +12,8 @@ This blender Python Script maps an OpenPose Facial Capture to a blender facial R
 [Blender Artists thread](https://blenderartists.org/t/openpose-ai-facial-motion-capture-to-blender-tutorial/1223147)
 
 ---
+I recently uploaded OpenPoseToRig.py and it IS NOT FUNCTIONAL.  I will be making a tutorial and finishing this script soon.
+
 # Script Modifications
 
 Open the script in Blender and modify lines as follows to make the script work on your rig:
