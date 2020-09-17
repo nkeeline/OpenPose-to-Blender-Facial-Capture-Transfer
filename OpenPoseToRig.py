@@ -542,15 +542,6 @@ class OpenPoseToRigifySettings(bpy.types.PropertyGroup):
         subtype='FILE_PATH'
         )
         
-    rig_type: bpy.props.EnumProperty(
-        name="Rig Type",
-        description="The Rig Type we are applying capture to",
-        items=[ ('RIGIY', "Rigify", ""),
-                ('AUTORIGPRO', "Auto Rig Pro", ""),
-                ('DAZBRIDGE', "DAZ Bridge", ""),
-               ]
-        )
-        
     bone_mapping_file: bpy.props.StringProperty(
         name="Bone Mapping File to Read and Save",
         description="Select a File to Read In:",
@@ -589,7 +580,9 @@ class BoneMappingListItem(bpy.types.PropertyGroup):
     SourceBoneLocationNameFace: bpy.props.EnumProperty(
         name="Source Bone Name Face",
         description="This is the source from JSON like head_bone that designates where this bone is getting it's information from in the JSON file",
-        items=[ ('LowerLipCenter', "LowerLipCenter", ""),
+        items=[ ('head', "head", ""),
+                ('chin', "chin", ""),
+                ('LowerLipCenter', "LowerLipCenter", ""),
                 ('LowerLipCenterLeft', "LowerLipCenterLeft", ""),
                 ('LowerLipCenterRight', "LowerLipCenterRight", ""),
                 ('UpperLipCenter', "UpperLipCenter", ""),
@@ -1210,10 +1203,18 @@ class LIST_OT_ReadInFile(bpy.types.Operator):
 class LIST_OT_AutoReadInValues(bpy.types.Operator): 
     """Take In currently Selected Bone and Auto Populate Values""" 
     bl_idname = "wm.auto_populate_bone_values" 
-    bl_label = "Read In Bone Values and Populate Bone" 
+    bl_label = "Update Bone Name from Selected Bone" 
 
     def execute(self, context): 
         op2rig = bpy.context.scene.openpose_2_rig_settings 
+        bone_list = context.scene.bone_mapping_list
+        index = context.scene.custom_index 
+        if len(context.selected_objects) == 1:
+            rigname = context.selected_objects[0].name
+            op2rig.rig_name = rigname
+        if len(context.selected_pose_bones) == 1:
+            bonename = context.selected_pose_bones[0].name
+            bone_list[index].name = bonename
         return{'FINISHED'}
     
 
@@ -1240,7 +1241,6 @@ class LIST_OT_SaveToFile(bpy.types.Operator):
         "eyelid_noise_removal_distance":op2rig.eyelid_noise_removal_distance,
         "rig_name":op2rig.rig_name,
         "first_JSON_file_to_read_in":op2rig.first_JSON_file_to_read_in,
-        "rig_type":op2rig.rig_type,
         "bone_mapping_file":op2rig.bone_mapping_file,
         } 
         bone_list = context.scene.bone_mapping_list
@@ -1390,7 +1390,6 @@ class PanelOne(OpenPoseToRigToolsPanel, bpy.types.Panel):
         layout.prop(op2rig, "eyelid_noise_removal_distance")
         layout.prop(op2rig, "rig_name")
         layout.prop(op2rig, "first_JSON_file_to_read_in")
-        layout.prop(op2rig, "rig_type", text="Rigify")
         layout.operator("wm.applyjsonfiles")
         
 class PanelTwo(OpenPoseToRigToolsPanel, bpy.types.Panel):
@@ -1407,6 +1406,8 @@ class PanelTwo(OpenPoseToRigToolsPanel, bpy.types.Panel):
         row.operator("wm.read_file")
         row.operator("wm.save_file")
         row = layout.row()
+        row.operator("wm.auto_populate_bone_values")
+        row = layout.row()
         row.template_list("MY_UL_List", "The_List", scene, "bone_mapping_list", scene,"custom_index")#, type='COMPACT')#, "index")
         row = layout.row() 
         row.operator('bone_mapping_list.new_item', text='NEW') 
@@ -1416,9 +1417,10 @@ class PanelTwo(OpenPoseToRigToolsPanel, bpy.types.Panel):
         
         if scene.custom_index >= 0 and scene.bone_mapping_list: 
             item = scene.bone_mapping_list[scene.custom_index] 
-            layout = self.layout
+            layout = self.layout    
+            row = layout.row() 
+            row.label(text="Selected Bone Mapping Parameters")
             box = layout.box()
-            box.label(text="Selected Bone Mapping Parameters")
             box.prop(item, "name") 
             box.prop(item, "SourceBoneType")
             if item.SourceBoneType == 'FACE':
@@ -1431,23 +1433,33 @@ class PanelTwo(OpenPoseToRigToolsPanel, bpy.types.Panel):
                 #box.prop(item, "SourceBoneLocationNameHand")
             box.prop(item, "BoneGain")
             box.prop(item, "DestinationBoneName")
-            box.prop(item, "BoneModificationType")
-            box.prop(item, "ApplyToX")
+            box.prop(item, "BoneModificationType")        
+            row = layout.row() 
+            row.prop(item, "ApplyToX")
             if item.ApplyToX:
+                box = layout.box()
                 box.prop(item, "BoneHorizontalAxis")
-            box.prop(item, "ApplyToY")
+            row = layout.row() 
+            row.prop(item, "ApplyToY")
             if item.ApplyToY:
+                box = layout.box()
                 box.prop(item, "BoneVerticalAxis")
-            box.prop(item, "ApplyRollCorrection")
+            row = layout.row() 
+            row.prop(item, "ApplyRollCorrection")
             if item.ApplyRollCorrection:
+                box = layout.box()
                 box.prop(item, "BoneRollCorrectionAxis")
                 box.prop(item, "RollCorrection")
-            box.prop(item, "ApplyRollCorrection2")
+            row = layout.row() 
+            row.prop(item, "ApplyRollCorrection2")
             if item.ApplyRollCorrection2:
+                box = layout.box()
                 box.prop(item, "BoneRollCorrectionAxis2")
                 box.prop(item, "RollCorrection2")
-            box.prop(item, "RemoveParentBonesTranslationEffectCorrection")
+            row = layout.row() 
+            row.prop(item, "RemoveParentBonesTranslationEffectCorrection")
             if item.RemoveParentBonesTranslationEffectCorrection:
+                box = layout.box()
                 box.prop(item, "ParentBoneCorrectionName")
                 box.prop(item, "ParentCorrectionType")
                 box.prop(item, "ParentCorrectionVerticalAxis")
@@ -1462,7 +1474,7 @@ class PanelTwo(OpenPoseToRigToolsPanel, bpy.types.Panel):
                 else:
                     box.prop(item, "HorizontalParentRotationAmount")
                 box.prop(item, "HorizontalTranslationRemovalAmount")
-            box.operator("wm.auto_populate_bone_values")
+            row = layout.row() 
         
 # ------------------------------------------------------------------------
 # register and unregister
