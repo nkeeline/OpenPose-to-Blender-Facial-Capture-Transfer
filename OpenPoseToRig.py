@@ -738,49 +738,91 @@ class BoneMappingListItem(bpy.types.PropertyGroup):
                ]
         )
         
-    ApplyLipTogetherCorrection: bpy.props.BoolProperty(
-        name="Bone correction to move lips back together",
-        description="If the jaw Bone moves this bone, this correction moves the lower lip back together so we can then translate them with respect to the nose.",
+    RemoveParentBonesTranslationEffectCorrection: bpy.props.BoolProperty(
+        name="Removes the effects of a Parent Bone",
+        description="If the jaw Bone moves a lip bone, this correction moves the lower lip back together so we can then translate them with respect to the nose.",
         default = False
         )
         
+    ParentBoneCorrectionName: bpy.props.StringProperty(
+        name="Name of Parent Bone to this one.",
+        description="This is the name for the parent bone that is effecting this one.",
+        default="",
+        maxlen=1024
+        )
+      
+    ParentCorrectionType: bpy.props.EnumProperty(
+        name="Parent Bone Type of Motion to Nullify",
+        description="The parent bones motion type that will be nulled out in the child bone",
+        items=[ ('LOC', "Location", ""),
+                ('ROT', "Rotation", ""),
+               ]
+        )
+      
+    ParentCorrectionVerticalAxis: bpy.props.EnumProperty(
+        name="Parent Axis to remove motion or Angle from child",
+        description="Axis to Apply vertical translation or rotation to.",
+        items=[ ('PLUSX', "X", ""),
+                ('PLUSY', "Y", ""),
+                ('PLUSZ', "Z", "")
+               ]
+        )
         
-    VerticalLipBackTogetherAmount: bpy.props.FloatProperty(
-        name="Vertical Translation Per Degree of jaw Tilt",
-        description="The Vertical amount per degree to move a bone back to the lips.",
+        
+    VerticalParentTranslationRemovalAmount: bpy.props.FloatProperty(
+        name="Parent Bones Translation Amount",
+        description="If the parent bone is moved by this amount, move the child back up by the below amount.",
+        subtype = 'DISTANCE',
+        default = 0
+        )
+        
+        
+    VerticalParentRotationAmount: bpy.props.FloatProperty(
+        name="Rotation in degrees of parent bone to correct out.",
+        description="If the parent bone is rotated along the above axis by this amount, translate the child the below amount vertically.",
+        subtype = 'ANGLE',
+        default = 0
+        )
+        
+        
+    VerticalTranslationRemovalAmount: bpy.props.FloatProperty(
+        name="This Bones translation to null out angle above.",
+        description="If the parent bone moves the above amount move it vertically back by this amount.",
         subtype = 'DISTANCE',
         default = 0
         )
       
-    VerticalLipBackTogetherDirection: bpy.props.EnumProperty(
-        name="Vert Jaw Correction Axis",
-        description="Axis to Apply vertical translation or rotation to.",
-        items=[ ('PLUSX', "+X", ""),
-                ('PLUSY', "+Y", ""),
-                ('PLUSZ', "+Z", ""),
-                ('NEGX', "-X", ""),
-                ('NEGY', "-Y", ""),
-                ('NEGZ', "-Z", "")
+    ParentCorrectionHorizontalAxis: bpy.props.EnumProperty(
+        name="Parent Axis to remove motion or Angle from child",
+        description="Axis to Apply horizontal translation or rotation to.",
+        items=[ ('PLUSX', "X", ""),
+                ('PLUSY', "Y", ""),
+                ('PLUSZ', "Z", "")
                ]
         )
-                
-    HorizontalLipBackTogetherAmount: bpy.props.FloatProperty(
-        name="Horizontal Translation Per Degree of jaw Tilt",
-        description="The harizontal amount per degree to move a bone back to the lips.",
+        
+        
+    HorizontalParentTranslationRemovalAmount: bpy.props.FloatProperty(
+        name="Parent Bones Translation Amount",
+        description="If the parent bone is moved by this amount, move the child back up by the below amount.",
         subtype = 'DISTANCE',
         default = 0
         )
-      
-    HorizontalLipBackTogetherDirection: bpy.props.EnumProperty(
-        name="Horiz Jaw Correction Axis",
-        description="Axis to Apply vertical translation or rotation to.",
-        items=[ ('PLUSX', "+X", ""),
-                ('PLUSY', "+Y", ""),
-                ('PLUSZ', "+Z", ""),
-                ('NEGX', "-X", ""),
-                ('NEGY', "-Y", ""),
-                ('NEGZ', "-Z", "")
-               ]
+        
+        
+    HorizontalParentRotationAmount: bpy.props.FloatProperty(
+        name="Rotation in degrees of parent bone to correct out.",
+        description="If the parent bone is rotated along the above axis by this amount, translate the child the below amount Horizontally.",
+        subtype = 'ANGLE',
+        default = 0
+        )
+        
+        
+    HorizontalTranslationRemovalAmount: bpy.props.FloatProperty(
+        name="This Bones translation to null out angle above.",
+        description="If the parent bone moves the above amount move it horizontally back by this amount.",
+        subtype = 'DISTANCE',
+        default = 0
         )
                
 #    DirectionQuatToApplyXandY: bpy.props.FloatVectorProperty(
@@ -1148,11 +1190,17 @@ class LIST_OT_ReadInFile(bpy.types.Operator):
             bone.ApplyRollCorrection2 = p['ApplyRollCorrection2']
             bone.RollCorrection2 = p['RollCorrection2']
             bone.BoneRollCorrectionAxis2 = p['BoneRollCorrectionAxis2']
-            bone.ApplyLipTogetherCorrection = p['ApplyLipTogetherCorrection']
-            bone.VerticalLipBackTogetherAmount = p['VerticalLipBackTogetherAmount']
-            bone.VerticalLipBackTogetherDirection = p['VerticalLipBackTogetherDirection']
-            bone.HorizontalLipBackTogetherAmount = p['HorizontalLipBackTogetherAmount']
-            bone.HorizontalLipBackTogetherDirection = p['HorizontalLipBackTogetherDirection']
+            bone.RemoveParentBonesTranslationEffectCorrection = p['RemoveParentBonesTranslationEffectCorrection']
+            bone.ParentBoneCorrectionName = p['ParentBoneCorrectionName']
+            bone.ParentCorrectionType = p['ParentCorrectionType']
+            bone.ParentCorrectionVerticalAxis = p['ParentCorrectionVerticalAxis']
+            bone.VerticalParentTranslationRemovalAmount = p['VerticalParentTranslationRemovalAmount']
+            bone.VerticalParentRotationAmount = p['VerticalParentRotationAmount']
+            bone.VerticalTranslationRemovalAmount = p['VerticalTranslationRemovalAmount']
+            bone.ParentCorrectionHorizontalAxis = p['ParentCorrectionHorizontalAxis']
+            bone.HorizontalParentTranslationRemovalAmount = p['HorizontalParentTranslationRemovalAmount']
+            bone.HorizontalParentRotationAmount = p['HorizontalParentRotationAmount']
+            bone.HorizontalTranslationRemovalAmount = p['HorizontalTranslationRemovalAmount']
             i = i + 1
         file.close()
         
@@ -1218,11 +1266,17 @@ class LIST_OT_SaveToFile(bpy.types.Operator):
                 'ApplyRollCorrection2': bone.ApplyRollCorrection2,
                 'RollCorrection2': bone.RollCorrection2,
                 'BoneRollCorrectionAxis2': bone.BoneRollCorrectionAxis2,
-                'ApplyLipTogetherCorrection': bone.ApplyLipTogetherCorrection,
-                'VerticalLipBackTogetherAmount': bone.VerticalLipBackTogetherAmount,
-                'VerticalLipBackTogetherDirection': bone.VerticalLipBackTogetherDirection,
-                'HorizontalLipBackTogetherAmount': bone.HorizontalLipBackTogetherAmount,
-                'HorizontalLipBackTogetherDirection': bone.HorizontalLipBackTogetherDirection,
+                'RemoveParentBonesTranslationEffectCorrection': bone.RemoveParentBonesTranslationEffectCorrection,
+                'ParentBoneCorrectionName': bone.ParentBoneCorrectionName,
+                'ParentCorrectionType': bone.ParentCorrectionType,
+                'ParentCorrectionVerticalAxis': bone.ParentCorrectionVerticalAxis,
+                'VerticalParentTranslationRemovalAmount': bone.VerticalParentTranslationRemovalAmount,
+                'VerticalParentRotationAmount': bone.VerticalParentRotationAmount,
+                'VerticalTranslationRemovalAmount': bone.VerticalTranslationRemovalAmount,
+                'ParentCorrectionHorizontalAxis': bone.ParentCorrectionHorizontalAxis,
+                'HorizontalParentTranslationRemovalAmount': bone.HorizontalParentTranslationRemovalAmount,
+                'HorizontalParentRotationAmount': bone.HorizontalParentRotationAmount,
+                'HorizontalTranslationRemovalAmount': bone.HorizontalTranslationRemovalAmount
             })
         jsonbones.update(rootParams)
         print(jsonbones)
@@ -1386,19 +1440,28 @@ class PanelTwo(OpenPoseToRigToolsPanel, bpy.types.Panel):
                 box.prop(item, "BoneVerticalAxis")
             box.prop(item, "ApplyRollCorrection")
             if item.ApplyRollCorrection:
-                box.prop(item, "RollCorrection")
                 box.prop(item, "BoneRollCorrectionAxis")
+                box.prop(item, "RollCorrection")
             box.prop(item, "ApplyRollCorrection2")
             if item.ApplyRollCorrection2:
-                box.prop(item, "RollCorrection2")
                 box.prop(item, "BoneRollCorrectionAxis2")
-            if item.SourceBoneType == 'FACE':
-                box.prop(item, "ApplyLipTogetherCorrection")
-                if item.ApplyLipTogetherCorrection:
-                    box.prop(item, "VerticalLipBackTogetherAmount")
-                    box.prop(item, "VerticalLipBackTogetherDirection")
-                    box.prop(item, "HorizontalLipBackTogetherAmount")
-                    box.prop(item, "HorizontalLipBackTogetherDirection")
+                box.prop(item, "RollCorrection2")
+            box.prop(item, "RemoveParentBonesTranslationEffectCorrection")
+            if item.RemoveParentBonesTranslationEffectCorrection:
+                box.prop(item, "ParentBoneCorrectionName")
+                box.prop(item, "ParentCorrectionType")
+                box.prop(item, "ParentCorrectionVerticalAxis")
+                if item.ParentCorrectionType == 'LOC':
+                    box.prop(item, "VerticalParentTranslationRemovalAmount")
+                else:
+                    box.prop(item, "VerticalParentRotationAmount")
+                box.prop(item, "VerticalTranslationRemovalAmount")
+                box.prop(item, "ParentCorrectionHorizontalAxis")
+                if item.ParentCorrectionType == 'LOC':
+                    box.prop(item, "HorizontalParentTranslationRemovalAmount")
+                else:
+                    box.prop(item, "HorizontalParentRotationAmount")
+                box.prop(item, "HorizontalTranslationRemovalAmount")
             box.operator("wm.auto_populate_bone_values")
         
 # ------------------------------------------------------------------------
