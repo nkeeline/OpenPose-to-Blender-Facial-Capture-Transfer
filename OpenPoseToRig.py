@@ -842,12 +842,41 @@ class ReadInApplyToRigOperator(bpy.types.Operator):
     bl_idname = "wm.applyjsonfiles"
     bl_label = "Read in OpenPose JSON Files and Apply to Character"
 
+#    def get_roll_correction(self, bone, whichone):
+#        #we start by seeting which roll correction we're getting
+#        if whichone == 0:
+#            we_should_do_it = bone.RollCorrection
+#        else:
+#            we_should_do_it = bone.RollCorrection2
+#        if we_should_do_it:
+#            #tempcode for now
+#            out = 0
+#        else:
+#            out = 0
+#        return out
+
+    def get_correction_Angle(self, bone_axis, correction):
+        if bone_axis == 'NEGX' or bone_axis == 'NEGY' or bone_axis == 'NEGZ':
+            correction = correction*(-1)
+        if bone_axis == 'PLUSX' or bone_axis == 'NEGX':
+            cAngle = mathutils.Euler((math.radians(correction), math.radians(0), math.radians(0)), 'XYZ').to_quaternion()
+        if bone_axis == 'PLUSY' or bone_axis == 'NEGY':
+            cAngle = mathutils.Euler((math.radians(0), math.radians(correction), math.radians(0)), 'XYZ').to_quaternion()
+        if bone_axis == 'PLUSZ' or bone_axis == 'NEGZ':
+            cAngle = mathutils.Euler((math.radians(0), math.radians(0), math.radians(correction)), 'XYZ').to_quaternion()
+        return CAngle
+                
+    def get_parent_correction(self, bone):
+        return 0
+    
+    #def get_horizontal(self, bone):
+        
+        return horizontal 
     def execute(self, context):
         scene = context.scene
         op2rig = scene.openpose_2_rig_settings
-        bones = []
+        bone_list = context.scene.bone_mapping_list
         
-
         keepGoing = True
         filenum = 0 
         FirstTime = True
@@ -857,40 +886,7 @@ class ReadInApplyToRigOperator(bpy.types.Operator):
         print('')
         DestArm  = bpy.data.objects[op2rig.rig_name]
         Rigobj = RigModificationProcess(op2rig.rig_name, DestArm)
-        bones.append(BoneToMap(DestArm, "head_bone", "ROT", "c_head.x", True, True, True))
-        bones.append(BoneToMap(DestArm, "jaw_bone", "ROT", "c_jawbone.x", True, True, True))
         
-        bones.append(BoneToMap(DestArm, "lower_lip_center", "LOC", "c_lips_bot.x", False, True, False))
-        bones.append(BoneToMap(DestArm, "upper_lip_center", "LOC", "c_lips_top.x", False, True, False))
-        bones.append(BoneToMap(DestArm, "lower_lip_center_l", "LOC", "c_lips_bot.l", False, True, False))
-        bones.append(BoneToMap(DestArm, "lower_lip_center_r", "LOC", "c_lips_bot.r", False, True, False))
-        bones.append(BoneToMap(DestArm, "upper_lip_center_l", "LOC", "c_lips_top.l", False, True, False))
-        bones.append(BoneToMap(DestArm, "upper_lip_center_r", "LOC", "c_lips_top.r", False, True, False))
-
-        bones.append(BoneToMap(DestArm, "upper_lip_outer_r", "LOC", "c_lips_top_01.r", False, True, False))
-        bones.append(BoneToMap(DestArm, "lower_lip_outer_r", "LOC", "c_lips_bot_01.r", False, True, False))
-        bones.append(BoneToMap(DestArm, "upper_lip_outer_l", "LOC", "c_lips_top_01.l", False, True, False))
-        bones.append(BoneToMap(DestArm, "lower_lip_outer_l", "LOC", "c_lips_bot_01.l", False, True, False))
-
-        bones.append(BoneToMap(DestArm, "corner_lip_r", "LOC", "c_lips_smile.r", False, True, False))
-        bones.append(BoneToMap(DestArm, "Corner_lip_l", "LOC", "c_lips_smile.l", False, True, False))
-
-        bones.append(BoneToMap(DestArm, "eyebrow_outer_r", "LOC", "c_eyebrow_03.r", False, True, False))
-        bones.append(BoneToMap(DestArm, "eyebrow_center_r", "LOC", "c_eyebrow_01.r", False, True, False))
-        bones.append(BoneToMap(DestArm, "eyebrow_center_r2", "LOC", "c_eyebrow_02.r", False, True, False))
-        bones.append(BoneToMap(DestArm, "eyebrow_inner_r", "LOC", "c_eyebrow_01_end.r", False, True, False))
-
-        bones.append(BoneToMap(DestArm, "eyebrow_outer_l", "LOC", "c_eyebrow_03.l", False, True, False))
-        bones.append(BoneToMap(DestArm, "eyebrow_center_l", "LOC", "c_eyebrow_01.l", False, True, False))
-        bones.append(BoneToMap(DestArm, "eyebrow_center_l2", "LOC", "c_eyebrow_02.l", False, True, False))
-        bones.append(BoneToMap(DestArm, "eyebrow_inner_l", "LOC", "c_eyebrow_01_end.l", False, True, False))
-
-        bones.append(BoneToMap(DestArm, "eyelid_l", "LOC", "c_eyelid_top.l", False, True, False))
-        bones.append(BoneToMap(DestArm, "eyelid_r", "LOC", "c_eyelid_top.r", False, True, False))
-
-        bones.append(BoneToMap(DestArm, "eyelid_lower_l", "LOC", "c_eyelid_bot_02.l", False, True, False))
-        bones.append(BoneToMap(DestArm, "eyelid_lower_r", "LOC", "c_eyelid_bot_02.r", False, True, False))
-
         #going to force Eyelid Keyframe if it's drastically different
         PreviousEyelidValue = 0
         CurrentFrame = op2rig.start_frame_to_apply
@@ -933,130 +929,235 @@ class ReadInApplyToRigOperator(bpy.types.Operator):
                 else:
                     p1.SetCurrentPose(pose, face)
                 
-                sideToSideHeadTile = p1.getHeadTiltSideToSide()
-                InnerEyebrowTiltCorrection = -0.0004*sideToSideHeadTile
-                OuterEyebrowTiltCorrection = -0.000367*sideToSideHeadTile
-                #print(GetPoint(pose,0))
-                head_angle = mathutils.Euler((math.radians(p1.getHeadTiltUpDown()),math.radians(p1.getHeadTiltLeftRight()),math.radians(sideToSideHeadTile)), 'XYZ')
-                
-                head_bone.rotation_mode = 'XYZ'
-                head_bone.rotation_euler = head_angle
-                
-                #jaw_bone.rotation_mode = 'XYZ'
-                #jaw_bone.rotation_euler.z = math.radians(p1.getJawTiltUpDown())
-                
-                Offset = p1.getLowerLipCenterPosition(1)
-                #jaw_bone.location.x = Offset[0]*(-1)
-                JawVerticalTranslation = Offset[1]*(-1)
-                jaw_bone.location.z = JawVerticalTranslation
-                
-                #because the lower lip follows the jaw we need a correction for the movement of the jaw to the lower lip.
-                lowerLipJawCorrection = JawVerticalTranslation*2.335
-                LowerLipGain = 3
-                #lower_face.rotation_mode = 'XYZ'
-                #lower_face.rotation_euler.x = math.radians(p1.getJawTiltUpDown())
-                
-                upperLipVertGain = .5
-                
-                Offset = p1.getLowerLipCenterPosition(1)
-                #lower_lip_center.location.z = Offset[0]
-                lower_lip_center.location.y = Offset[1]*LowerLipGain+lowerLipJawCorrection
-                
-                Offset = p1.getUpperLipCenterPosition(1)
-                #upper_lip_center.location.z = Offset[0]
-                upper_lip_center.location.y = Offset[1]*upperLipVertGain
-                
-                Offset = p1.getLowerLipCenterLeftPosition(1)
-                #lower_lip_center_l.location.z = Offset[0]
-                lower_lip_center_l.location.y = Offset[1]*LowerLipGain+lowerLipJawCorrection
-                
-                Offset = p1.getLowerLipCenterRightPosition(1)
-                #lower_lip_center_r.location.z = Offset[0]
-                lower_lip_center_r.location.y = Offset[1]*LowerLipGain+lowerLipJawCorrection
-                
-                Offset = p1.getUpperLipCenterLeftPosition(1)
-                #upper_lip_center_l.location.z = Offset[0]
-                upper_lip_center_l.location.y = Offset[1]*upperLipVertGain
-                
-                Offset = p1.getUpperLipCenterRightPosition(1)
-                #upper_lip_center_r.location.z = Offset[0]
-                upper_lip_center_r.location.y = Offset[1]*upperLipVertGain
-                
-                
-                
-                Offset = p1.getUpperLipOuterRightPosition(1)
-                #upper_lip_outer_r.location.z = Offset[0]
-                upper_lip_outer_r.location.y = Offset[1]*upperLipVertGain
-                
-                Offset = p1.getLowerLipOuterRightPosition(1)
-                #lower_lip_outer_r.location.z = Offset[0]
-                lower_lip_outer_r.location.y = Offset[1]*LowerLipGain+lowerLipJawCorrection
-                
-                Offset = p1.getUpperLipOuterLeftPosition(1)
-                #upper_lip_outer_l.location.z = Offset[0]
-                upper_lip_outer_l.location.y = Offset[1]*upperLipVertGain
-                
-                Offset = p1.getLowerLipOuterLeftPosition(1)
-                #lower_lip_outer_l.location.z = Offset[0]
-                lower_lip_outer_l.location.y = Offset[1]*LowerLipGain+lowerLipJawCorrection
-                
-                
-                
-                Offset = p1.getLipRightPosition(1)
-                corner_lip_r.location.z = Offset[0]
-                corner_lip_r.location.y = Offset[1]
-                
-                Offset = p1.getLipLeftPosition(1)
-                Corner_lip_l.location.z = Offset[0]
-                Corner_lip_l.location.y = Offset[1]
-                        
-                
-                eyecorrection = 2
-                Offset = p1.getEyeBrowLeftOuter(1)
-                eyebrow_outer_r.location.z = Offset[0]
-                eyebrow_outer_r.location.y = Offset[1]*2 + OuterEyebrowTiltCorrection
-                
-                Offset = p1.getEyeBrowLeftCenter(1)
-                eyebrow_center_r.location.z = Offset[0]
-                eyebrow_center_r.location.y = Offset[1]*2
-                
-                Offset = p1.getEyeBrowLeftCenter(1)
-                eyebrow_center_r2.location.z = Offset[0]
-                eyebrow_center_r2.location.y = Offset[1]*2
-                
-                Offset = p1.getEyeBrowLeftInner(1)
-                eyebrow_inner_r.location.z = Offset[0]
-                eyebrow_inner_r.location.y = Offset[1]*2 - InnerEyebrowTiltCorrection
-                        
-                
-                Offset = p1.getEyeBrowRightOuter(1)
-                eyebrow_outer_l.location.z = Offset[0]
-                eyebrow_outer_l.location.y = Offset[1]*2 - OuterEyebrowTiltCorrection
-                
-                Offset = p1.getEyeBrowRightCenter(1)
-                eyebrow_center_l.location.z = Offset[0]
-                eyebrow_center_l.location.y = Offset[1]*2
-                
-                Offset = p1.getEyeBrowRightCenter(1)
-                eyebrow_center_l2.location.z = Offset[0]
-                eyebrow_center_l2.location.y = Offset[1]*2
-                
-                Offset = p1.getEyeBrowRightInner(1)
-                eyebrow_inner_l.location.z = Offset[0]
-                eyebrow_inner_l.location.y = Offset[1]*2 + InnerEyebrowTiltCorrection
-                
-                Offset = p1.getEyelidLeft(10)
-                eyelid_l.location.z = Offset[1]
-                
-                Offset = p1.getEyelidRight(10)
-                eyelid_r.location.z = Offset[1]
-                
-                Offset = p1.getEyelidLowerLeft(1)
-                eyelid_lower_l.location.z = Offset[1]
-                
-                Offset = p1.getEyelidLowerRight(1)
-                eyelid_lower_r.location.z = Offset[1]
-                
+                # OLD CODE FOR SETTING BONT POSITIONS:
+                for bone_settings in bone_list:
+                    bone = DestArm.pose.bones[bone_settings.DestinationBoneName]
+                    bone.rotation_mode = 'XYZ'
+                    bone.rotation_euler = Euler((0.0, 0.0, 0.0), 'XYZ')
+                    bone.rotation_mode = 'QUATERNION'
+                    
+                    #apply corrections START
+                    if bone.RollCorrection:
+                        cAngle = get_correction_Angle(bone_settings.BoneRollCorrectionAxis, bone_settings.BoneRollCorrection)
+                        bone.rotation = bone.rotation @ cAngle
+                    if bone.RollCorrection2:
+                        cAngle = get_correction_Angle(bone_settings.BoneRollCorrectionAxis2, bone_settings.BoneRollCorrection2)
+                        bone.rotation_quaternion = bone.rotation_quaternion @ cAngle
+                    
+                    #Apply offset in Rotation or 
+                    g = bone_settings.BoneGain
+                    x = 0
+                    y = 0
+                    z = 0
+                    apply = False
+                    if bone_settings.SourceBoneType == 'FACE':
+                        if bone_settings.BoneModificationType == 'ROT':
+                            if bone_settings.SourceBoneLocationNameFace == 'head':
+                                sideToSideHeadTile = p1.getHeadTiltSideToSide()
+                                horizontal = p1.getHeadTiltLeftRight()
+                                vertical = p1.getHeadTiltUpDown()
+                                apply = True
+                            elif bone_settings.SourceBoneLocationNameFace == 'chin':
+                                sideToSideHeadTile = p1.getHeadTiltSideToSide()
+                                horizontal = p1.getHeadTiltLeftRight()
+                                vertical = p1.getHeadTiltUpDown()
+                                apply = True
+                            else:
+                                print('Bone: ' + bone_settings.SourceBoneLocationNameFace + ' not supported in rotation mode.')
+                                #InnerEyebrowTiltCorrection = -0.0004*sideToSideHeadTile
+                                #OuterEyebrowTiltCorrection = -0.000367*sideToSideHeadTile
+                            if apply:
+                                if bone_settings.ApplyToX:
+                                    if bone_settings.BoneHorizontalAxis == 'PLUSX': 
+                                        x =  horizontal
+                                    elif bone_settings.BoneHorizontalAxis == 'NEGX':
+                                        x =  horizontal*-1
+                                    if bone_settings.BoneHorizontalAxis == 'PLUSY': 
+                                        y =  horizontal
+                                    elif bone_settings.BoneHorizontalAxis == 'NEGY':
+                                        y =  horizontal*-1
+                                    if bone_settings.BoneHorizontalAxis == 'PLUSZ': 
+                                        z =  horizontal
+                                    elif bone_settings.BoneHorizontalAxis == 'NEGZ':
+                                        z =  horizontal*-1
+                                if bone_settings.ApplyToY:
+                                    if bone_settings.BoneHorizontalAxis == 'PLUSX': 
+                                        x =  vertical
+                                    elif bone_settings.BoneHorizontalAxis == 'NEGX':
+                                        x =  vertical*-1
+                                    if bone_settings.BoneHorizontalAxis == 'PLUSY': 
+                                        y =  vertical
+                                    elif bone_settings.BoneHorizontalAxis == 'NEGY':
+                                        y =  vertical*-1
+                                    if bone_settings.BoneHorizontalAxis == 'PLUSZ': 
+                                        z =  vertical
+                                    elif bone_settings.BoneHorizontalAxis == 'NEGZ':
+                                        z =  vertical*-1
+                                head_angle = mathutils.Euler((math.radians(x*g),math.radians(y+g),math.radians(z*g)), 'XYZ')
+                                bone.rotation_mode = 'XYZ'
+                                bone.rotation_euler = head_angle
+                        if bone_settings.BoneModificationType == 'LOC':
+                            if bone_settings.SourceBoneLocationNameFace == 'LowerLipCenter':
+                                Offset = p1.getLowerLipCenterPosition(1)
+                                horizontal = Offset[0]
+                                vertical = Offset[1]
+                                apply = True
+                            else:
+                                print('Bone: ' + bone_settings.SourceBoneLocationNameFace + ' not supported in location mode.')
+                            if apply:
+                                if bone_settings.ApplyToX:
+                                    if bone_settings.BoneHorizontalAxis == 'PLUSX': 
+                                        x =  horizontal
+                                    elif bone_settings.BoneHorizontalAxis == 'NEGX':
+                                        x =  horizontal*-1
+                                    if bone_settings.BoneHorizontalAxis == 'PLUSY': 
+                                        y =  horizontal
+                                    elif bone_settings.BoneHorizontalAxis == 'NEGY':
+                                        y =  horizontal*-1
+                                    if bone_settings.BoneHorizontalAxis == 'PLUSZ': 
+                                        z =  horizontal
+                                    elif bone_settings.BoneHorizontalAxis == 'NEGZ':
+                                        z =  horizontal*-1
+                                if bone_settings.ApplyToY:
+                                    if bone_settings.BoneHorizontalAxis == 'PLUSX': 
+                                        x =  vertical
+                                    elif bone_settings.BoneHorizontalAxis == 'NEGX':
+                                        x =  vertical*-1
+                                    if bone_settings.BoneHorizontalAxis == 'PLUSY': 
+                                        y =  vertical
+                                    elif bone_settings.BoneHorizontalAxis == 'NEGY':
+                                        y =  vertical*-1
+                                    if bone_settings.BoneHorizontalAxis == 'PLUSZ': 
+                                        z =  vertical
+                                    elif bone_settings.BoneHorizontalAxis == 'NEGZ':
+                                        z =  vertical*-1
+                                bone.location.x = x*g
+                                bone.location.y = y*g
+                                bone.location.z = z*g
+                    
+                    #apply corrections END (un-does roll corrections)
+                    if bone.RollCorrection:
+                        cAngle = get_correction_Angle(bone_settings.BoneRollCorrectionAxis, bone_settings.BoneRollCorrection)
+                        bone.rotation = bone.rotation @ cAngle.inverted()
+                    if bone.RollCorrection2:
+                        cAngle = get_correction_Angle(bone_settings.BoneRollCorrectionAxis2, bone_settings.BoneRollCorrection2)
+                        bone.rotation_quaternion = bone.rotation_quaternion @ cAngle.inverted()
+#                
+#                #jaw_bone.rotation_mode = 'XYZ'
+#                #jaw_bone.rotation_euler.z = math.radians(p1.getJawTiltUpDown())
+#                
+#                Offset = p1.getLowerLipCenterPosition(1)
+#                #jaw_bone.location.x = Offset[0]*(-1)
+#                JawVerticalTranslation = Offset[1]*(-1)
+#                jaw_bone.location.z = JawVerticalTranslation
+#                
+#                #because the lower lip follows the jaw we need a correction for the movement of the jaw to the lower lip.
+#                lowerLipJawCorrection = JawVerticalTranslation*2.335
+#                LowerLipGain = 3
+#                #lower_face.rotation_mode = 'XYZ'
+#                #lower_face.rotation_euler.x = math.radians(p1.getJawTiltUpDown())
+#                
+#                upperLipVertGain = .5
+#                
+#                Offset = p1.getLowerLipCenterPosition(1)
+#                #lower_lip_center.location.z = Offset[0]
+#                lower_lip_center.location.y = Offset[1]*LowerLipGain+lowerLipJawCorrection
+#                
+#                Offset = p1.getUpperLipCenterPosition(1)
+#                #upper_lip_center.location.z = Offset[0]
+#                upper_lip_center.location.y = Offset[1]*upperLipVertGain
+#                
+#                Offset = p1.getLowerLipCenterLeftPosition(1)
+#                #lower_lip_center_l.location.z = Offset[0]
+#                lower_lip_center_l.location.y = Offset[1]*LowerLipGain+lowerLipJawCorrection
+#                
+#                Offset = p1.getLowerLipCenterRightPosition(1)
+#                #lower_lip_center_r.location.z = Offset[0]
+#                lower_lip_center_r.location.y = Offset[1]*LowerLipGain+lowerLipJawCorrection
+#                
+#                Offset = p1.getUpperLipCenterLeftPosition(1)
+#                #upper_lip_center_l.location.z = Offset[0]
+#                upper_lip_center_l.location.y = Offset[1]*upperLipVertGain
+#                
+#                Offset = p1.getUpperLipCenterRightPosition(1)
+#                #upper_lip_center_r.location.z = Offset[0]
+#                upper_lip_center_r.location.y = Offset[1]*upperLipVertGain
+#                
+#                
+#                
+#                Offset = p1.getUpperLipOuterRightPosition(1)
+#                #upper_lip_outer_r.location.z = Offset[0]
+#                upper_lip_outer_r.location.y = Offset[1]*upperLipVertGain
+#                
+#                Offset = p1.getLowerLipOuterRightPosition(1)
+#                #lower_lip_outer_r.location.z = Offset[0]
+#                lower_lip_outer_r.location.y = Offset[1]*LowerLipGain+lowerLipJawCorrection
+#                
+#                Offset = p1.getUpperLipOuterLeftPosition(1)
+#                #upper_lip_outer_l.location.z = Offset[0]
+#                upper_lip_outer_l.location.y = Offset[1]*upperLipVertGain
+#                
+#                Offset = p1.getLowerLipOuterLeftPosition(1)
+#                #lower_lip_outer_l.location.z = Offset[0]
+#                lower_lip_outer_l.location.y = Offset[1]*LowerLipGain+lowerLipJawCorrection
+#                
+#                
+#                
+#                Offset = p1.getLipRightPosition(1)
+#                corner_lip_r.location.z = Offset[0]
+#                corner_lip_r.location.y = Offset[1]
+#                
+#                Offset = p1.getLipLeftPosition(1)
+#                Corner_lip_l.location.z = Offset[0]
+#                Corner_lip_l.location.y = Offset[1]
+#                        
+#                
+#                eyecorrection = 2
+#                Offset = p1.getEyeBrowLeftOuter(1)
+#                eyebrow_outer_r.location.z = Offset[0]
+#                eyebrow_outer_r.location.y = Offset[1]*2 + OuterEyebrowTiltCorrection
+#                
+#                Offset = p1.getEyeBrowLeftCenter(1)
+#                eyebrow_center_r.location.z = Offset[0]
+#                eyebrow_center_r.location.y = Offset[1]*2
+#                
+#                Offset = p1.getEyeBrowLeftCenter(1)
+#                eyebrow_center_r2.location.z = Offset[0]
+#                eyebrow_center_r2.location.y = Offset[1]*2
+#                
+#                Offset = p1.getEyeBrowLeftInner(1)
+#                eyebrow_inner_r.location.z = Offset[0]
+#                eyebrow_inner_r.location.y = Offset[1]*2 - InnerEyebrowTiltCorrection
+#                        
+#                
+#                Offset = p1.getEyeBrowRightOuter(1)
+#                eyebrow_outer_l.location.z = Offset[0]
+#                eyebrow_outer_l.location.y = Offset[1]*2 - OuterEyebrowTiltCorrection
+#                
+#                Offset = p1.getEyeBrowRightCenter(1)
+#                eyebrow_center_l.location.z = Offset[0]
+#                eyebrow_center_l.location.y = Offset[1]*2
+#                
+#                Offset = p1.getEyeBrowRightCenter(1)
+#                eyebrow_center_l2.location.z = Offset[0]
+#                eyebrow_center_l2.location.y = Offset[1]*2
+#                
+#                Offset = p1.getEyeBrowRightInner(1)
+#                eyebrow_inner_l.location.z = Offset[0]
+#                eyebrow_inner_l.location.y = Offset[1]*2 + InnerEyebrowTiltCorrection
+#                
+#                Offset = p1.getEyelidLeft(10)
+#                eyelid_l.location.z = Offset[1]
+#                
+#                Offset = p1.getEyelidRight(10)
+#                eyelid_r.location.z = Offset[1]
+#                
+#                Offset = p1.getEyelidLowerLeft(1)
+#                eyelid_lower_l.location.z = Offset[1]
+#                
+#                Offset = p1.getEyelidLowerRight(1)
+#                eyelid_lower_r.location.z = Offset[1]
+#                
                 #print(p1.getHeadTiltSideToSide())
                 #print(p1.getHeadTiltUpDown())
                 #print(p1.getHeadTiltLeftRight())
@@ -1145,8 +1246,6 @@ class LIST_OT_ReadInFile(bpy.types.Operator):
 
         data = json.load(file)
         
-        op2rig = bpy.context.scene.openpose_2_rig_settings 
-        
         op2rig.facial_capture = data['facial_capture']
         op2rig.body_capture = data['body_capture']
         op2rig.tie_eyelids_together = data['tie_eyelids_together']
@@ -1214,7 +1313,9 @@ class LIST_OT_AutoReadInValues(bpy.types.Operator):
             op2rig.rig_name = rigname
         if len(context.selected_pose_bones) == 1:
             bonename = context.selected_pose_bones[0].name
-            bone_list[index].name = bonename
+            if bone_list[index].name == '':
+                bone_list[index].name = bonename
+            bone_list[index].DestinationBoneName = bonename
         return{'FINISHED'}
     
 
