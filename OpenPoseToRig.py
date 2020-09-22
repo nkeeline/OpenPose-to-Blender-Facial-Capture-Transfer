@@ -616,7 +616,8 @@ class OpenPoseToRigifySettings(bpy.types.PropertyGroup):
         name = "Ignore Eyelid Flutter",
         description = "Blender Units to ignore eyelid jitter, higher values makes eyelids flutter less.",
         default = .01,
-        min = 0.001,
+        min = 0.00001,
+        precision = 6,
         max = 1000.0
         )
     rig_name: bpy.props.StringProperty(
@@ -1091,6 +1092,9 @@ class ReadInApplyToRigOperator(bpy.types.Operator):
                     y = 0
                     z = 0
                     apply = False
+                    eyelidfastmotiondetected_l =  False
+                    eyelidfastmotiondetected_r =  False
+                    eyelidtiedtoegetherfound = False
                     if bone_settings.SourceBoneType == 'FACE':
                         if bone_settings.BoneModificationType == 'ROT':
                             if bone_settings.SourceBoneLocationNameFace == 'head':
@@ -1211,25 +1215,39 @@ class ReadInApplyToRigOperator(bpy.types.Operator):
                                 Offset = p1.getEyeBrowRightInner(g,ref)
                                 apply = True
                             elif bone_settings.SourceBoneLocationNameFace == 'EyelidRight':
-                                if bone_settings.tie_eyelids_together:
+                                if not eyelidtiedtoegetherfound and op2rig.tie_eyelids_together:
+                                    eyelidtiedtoegetherfound = True
                                     right = p1.getEyelidRight(g,ref)
                                     left = p1.getEyelidLeft(g,ref)
                                     Average = AverageTwoPoints(right, left)
                                     Offset = Average
+                                    GlobalTiedTogetherValue = Average
+                                elif op2rig.tie_eyelids_together:
+                                    Offset = GlobalTiedTogetherValue
                                 else:
                                     Offset = p1.getEyelidRight(g,ref)
                                 apply = True
-                                eyelid_r_current = Offset[1]
+                                #have to get the flutter detect first time only
+                                if not eyelidfastmotiondetected_l:
+                                    eyelid_r_current = Offset[1]
+                                    eyelidfastmotiondetected_l = True
                             elif bone_settings.SourceBoneLocationNameFace == 'EyelidLeft':
-                                if bone_settings.tie_eyelids_together:
+                                if not eyelidtiedtoegetherfound and op2rig.tie_eyelids_together:
+                                    eyelidtiedtoegetherfound = True
                                     right = p1.getEyelidRight(g,ref)
                                     left = p1.getEyelidLeft(g,ref)
                                     Average = AverageTwoPoints(right, left)
                                     Offset = Average
+                                    GlobalTiedTogetherValue = Average
+                                elif op2rig.tie_eyelids_together:
+                                    Offset = GlobalTiedTogetherValue
                                 else:
                                     Offset = p1.getEyelidLeft(g,ref)
                                 apply = True
-                                eyelid_l_current = Offset[1]
+                                #have to get the flutter detect first time only
+                                if not eyelidfastmotiondetected_r:
+                                    eyelid_l_current = Offset[1]
+                                    eyelidfastmotiondetected_r = True
                             elif bone_settings.SourceBoneLocationNameFace == 'EyelidLowerRight':
                                 Offset = p1.getEyelidLowerRight(g,ref)
                                 apply = True
@@ -1281,6 +1299,9 @@ class ReadInApplyToRigOperator(bpy.types.Operator):
                 
                 
                 FinalFrameNumber = op2rig.start_frame_to_apply + CurrentFrame
+                
+                #we fast motion detect each eyelid and once true, keyfram ALL eyelid bones for each side.
+                eyelidfastmotiondetected =  False
                                 
                 # CODE FOR Keyframing Bones:
                 for bone_settings in bone_list:
@@ -1292,16 +1313,22 @@ class ReadInApplyToRigOperator(bpy.types.Operator):
                                 bone.keyframe_insert(data_path='rotation_euler',frame= FinalFrameNumber)
                             if bone_settings.BoneModificationType == 'LOC':
                                 bone.keyframe_insert(data_path='location',frame= FinalFrameNumber)                     
-                    elif (CurrentFrame % op2rig.eye_keyframe_every_n_frames == 0) and bone_settings.SourceBoneLocationNameFace == 'EyelidLeft':
-                        #keyfram if the eyelid changes a LOT. That way we catch blinks.
-                        AmountTheEyelidChanged = abs(eyelid_l_current - PreviousEyelidValue_l)
-                        if AmountTheEyelidChanged > op2rig.eyelid_noise_removal_distance:
+                    elif bone_settings.SourceBoneLocationNameFace == 'EyelidLeft':
+                        if not eyelidfastmotiondetected:
+                            #keyfram if the eyelid changes a LOT. That way we catch blinks.
+                            AmountTheEyelidChanged = abs(eyelid_l_current - PreviousEyelidValue_l)
+                            if (AmountTheEyelidChanged > op2rig.eyelid_noise_removal_distance):
+                                eyelidfastmotiondetected = True
+                        if eyelidfastmotiondetected or (CurrentFrame % op2rig.eye_keyframe_every_n_frames == 0):
                             bone.keyframe_insert(data_path='location',frame= FinalFrameNumber)
                         PreviousEyelidValue_l = eyelid_l_current 
-                    elif (CurrentFrame % op2rig.eye_keyframe_every_n_frames == 0) and bone_settings.SourceBoneLocationNameFace == 'EyelidRight':
-                        #keyfram if the eyelid changes a LOT. That way we catch blinks.
-                        AmountTheEyelidChanged = abs(eyelid_r_current - PreviousEyelidValue_r)
-                        if AmountTheEyelidChanged > op2rig.eyelid_noise_removal_distance:
+                    elif bone_settings.SourceBoneLocationNameFace == 'EyelidRight':
+                        if not eyelidfastmotiondetected:
+                            #keyfram if the eyelid changes a LOT. That way we catch blinks.
+                            AmountTheEyelidChanged = abs(eyelid_r_current - PreviousEyelidValue_r)
+                            if (AmountTheEyelidChanged > op2rig.eyelid_noise_removal_distance):
+                                eyelidfastmotiondetected = True
+                        if eyelidfastmotiondetected or (CurrentFrame % op2rig.eye_keyframe_every_n_frames == 0):
                             bone.keyframe_insert(data_path='location',frame= FinalFrameNumber)
                         PreviousEyelidValue_r = eyelid_r_current 
                     elif (CurrentFrame % op2rig.mouth_keyframe_every_n_frames == 0):
