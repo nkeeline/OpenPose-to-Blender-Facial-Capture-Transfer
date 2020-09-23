@@ -767,6 +767,21 @@ class BoneMappingListItem(bpy.types.PropertyGroup):
                 ('NEGZ', "-Z", "")
                ]
         )
+    ApplyTranslationAlongMoreAxisHorizontal: bpy.props.BoolProperty(
+        name="Translate along more Axis Horizontal",
+        description="This will take the translation along the axis above selected and move the other two axis proportionally by an amount",
+        default = False
+        )
+        
+        
+    TranslationAlongMoreAxisHorizontal: bpy.props.FloatVectorProperty(
+        name="Move other axis Horizontally",
+        description="Move the bone in the direction you want it to go and put it's x, y and z in here to have it move in this direction when openpose horizontal motion occurs",
+        subtype = 'TRANSLATION',
+        unit = 'LENGTH',
+        default = (0.0, 0.0, 0.0), 
+        size = 3
+        )
         
     ApplyToY: bpy.props.BoolProperty(
         name="Apply Vertical",
@@ -784,6 +799,21 @@ class BoneMappingListItem(bpy.types.PropertyGroup):
                 ('NEGY', "-Y", ""),
                 ('NEGZ', "-Z", "")
                ]
+        )
+    ApplyTranslationAlongMoreAxisVertical: bpy.props.BoolProperty(
+        name="Translate along more Axis Vertical",
+        description="This will take the translation along the axis above selected and move the other two axis proportionally by an amount",
+        default = False
+        )
+        
+        
+    TranslationAlongMoreAxisVertical: bpy.props.FloatVectorProperty(
+        name="Move other axis Vertically",
+        description="Move the bone in the direction you want it to go and put it's x, y and z in here to have it move in this direction when openpose Vertical motion occurs",
+        subtype = 'TRANSLATION',
+        unit = 'LENGTH',
+        default = (0.0, 0.0, 0.0), 
+        size = 3
         )
         
     ApplyToZ: bpy.props.BoolProperty(
@@ -804,53 +834,53 @@ class BoneMappingListItem(bpy.types.PropertyGroup):
                ]
         )
         
-    ApplyRollCorrection: bpy.props.BoolProperty(
-        name="Apply Roll Correction",
-        description="Apply a Roll Correction to the Bone if we don't have an axis that is straight up and down to the openpose capture.",
-        default = False
-        )
-        
-        
-    RollCorrection: bpy.props.FloatProperty(
-        name="1st Roll Correction",
-        description="The Angle to roll the bone before applying a transform to it.",
-        subtype = 'ANGLE',
-        unit = 'ROTATION',
-        default = 0
-        )
-      
-    BoneRollCorrectionAxis: bpy.props.EnumProperty(
-        name="Roll 1st Correction Axis",
-        description="Axis to Apply vertical translation or rotation to.",
-        items=[ ('PLUSX', "X", ""),
-                ('PLUSY', "Y", ""),
-                ('PLUSZ', "Z", "")
-               ]
-        )
-        
-    ApplyRollCorrection2: bpy.props.BoolProperty(
-        name="Apply 2nd Roll Correction",
-        description="Apply a 2nd Roll Correction to the Bone if we don't have an axis that is straight up and down to the openpose capture.",
-        default = False
-        )
-        
-        
-    RollCorrection2: bpy.props.FloatProperty(
-        name="2nd Roll Correction",
-        description="The Angle to roll the bone before applying a transform to it.",
-        subtype = 'ANGLE',
-        unit = 'ROTATION',
-        default = 0
-        )
-      
-    BoneRollCorrectionAxis2: bpy.props.EnumProperty(
-        name="Roll Correction Axis",
-        description="Axis to Apply vertical translation or rotation to.",
-        items=[ ('PLUSX', "X", ""),
-                ('PLUSY', "Y", ""),
-                ('PLUSZ', "Z", "")
-               ]
-        )
+#    ApplyRollCorrection: bpy.props.BoolProperty(
+#        name="Apply Roll Correction",
+#        description="Apply a Roll Correction to the Bone if we don't have an axis that is straight up and down to the openpose capture.",
+#        default = False
+#        )
+#        
+#        
+#    RollCorrection: bpy.props.FloatProperty(
+#        name="1st Roll Correction",
+#        description="The Angle to roll the bone before applying a transform to it.",
+#        subtype = 'ANGLE',
+#        unit = 'ROTATION',
+#        default = 0
+#        )
+#      
+#    BoneRollCorrectionAxis: bpy.props.EnumProperty(
+#        name="Roll 1st Correction Axis",
+#        description="Axis to Apply vertical translation or rotation to.",
+#        items=[ ('PLUSX', "X", ""),
+#                ('PLUSY', "Y", ""),
+#                ('PLUSZ', "Z", "")
+#               ]
+#        )
+#        
+#    ApplyRollCorrection2: bpy.props.BoolProperty(
+#        name="Apply 2nd Roll Correction",
+#        description="Apply a 2nd Roll Correction to the Bone if we don't have an axis that is straight up and down to the openpose capture.",
+#        default = False
+#        )
+#        
+#        
+#    RollCorrection2: bpy.props.FloatProperty(
+#        name="2nd Roll Correction",
+#        description="The Angle to roll the bone before applying a transform to it.",
+#        subtype = 'ANGLE',
+#        unit = 'ROTATION',
+#        default = 0
+#        )
+#      
+#    BoneRollCorrectionAxis2: bpy.props.EnumProperty(
+#        name="Roll Correction Axis",
+#        description="Axis to Apply vertical translation or rotation to.",
+#        items=[ ('PLUSX', "X", ""),
+#                ('PLUSY', "Y", ""),
+#                ('PLUSZ', "Z", "")
+#               ]
+#        )
         
     UseCustomKeyFrameNumber: bpy.props.BoolProperty(
         name="Use Custom Keyframe Number",
@@ -1044,7 +1074,7 @@ class ReadInApplyToRigOperator(bpy.types.Operator):
             print("Beginning File " + mypath)
             if path.exists(mypath):
                 
-                print("We are On File: " + str(filenum))
+                #print("We are On File: " + str(filenum))
                 win.progress_update(filenum)
                 
                 with open(mypath) as json_file:
@@ -1079,12 +1109,12 @@ class ReadInApplyToRigOperator(bpy.types.Operator):
                     bone.rotation_mode = 'QUATERNION'
                     
                     #apply corrections START
-                    if bone_settings.RollCorrection:
-                        cAngle = get_correction_Angle(bone_settings.BoneRollCorrectionAxis, bone_settings.BoneRollCorrection)
-                        bone.rotation = bone.rotation @ cAngle
-                    if bone_settings.RollCorrection2:
-                        cAngle = get_correction_Angle(bone_settings.BoneRollCorrectionAxis2, bone_settings.BoneRollCorrection2)
-                        bone.rotation_quaternion = bone.rotation_quaternion @ cAngle
+#                    if bone_settings.RollCorrection:
+#                        cAngle = get_correction_Angle(bone_settings.BoneRollCorrectionAxis, bone_settings.BoneRollCorrection)
+#                        bone.rotation = bone.rotation @ cAngle
+#                    if bone_settings.RollCorrection2:
+#                        cAngle = get_correction_Angle(bone_settings.BoneRollCorrectionAxis2, bone_settings.BoneRollCorrection2)
+#                        bone.rotation_quaternion = bone.rotation_quaternion @ cAngle
                     
                     #Apply offset in Rotation or 
                     g = bone_settings.BoneGain
@@ -1272,6 +1302,16 @@ class ReadInApplyToRigOperator(bpy.types.Operator):
                                         z =  horizontal
                                     elif bone_settings.BoneHorizontalAxis == 'NEGZ':
                                         z =  horizontal*-1
+                                    if bone_settings.ApplyTranslationAlongMoreAxisHorizontal:
+                                        if bone_settings.BoneHorizontalAxis == 'PLUSX' or bone_settings.BoneHorizontalAxis == 'NEGX': 
+                                            y = y + x*(bone_settings.TranslationAlongMoreAxisHorizontal.y/bone_settings.TranslationAlongMoreAxisHorizontal.x)
+                                            z = z + x*(bone_settings.TranslationAlongMoreAxisHorizontal.z/bone_settings.TranslationAlongMoreAxisHorizontal.x)
+                                        if bone_settings.BoneHorizontalAxis == 'PLUSY' or bone_settings.BoneHorizontalAxis == 'NEGY': 
+                                            x = x + y*(bone_settings.TranslationAlongMoreAxisHorizontal.x/bone_settings.TranslationAlongMoreAxisHorizontal.y)
+                                            z = z + y*(bone_settings.TranslationAlongMoreAxisHorizontal.z/bone_settings.TranslationAlongMoreAxisHorizontal.y)
+                                        if bone_settings.BoneHorizontalAxis == 'PLUSZ' or bone_settings.BoneHorizontalAxis == 'NEGZ': 
+                                            x = x + z*(bone_settings.TranslationAlongMoreAxisHorizontal.x/bone_settings.TranslationAlongMoreAxisHorizontal.z)
+                                            y = y + z*(bone_settings.TranslationAlongMoreAxisHorizontal.y/bone_settings.TranslationAlongMoreAxisHorizontal.z)
                                 if bone_settings.ApplyToY:
                                     if bone_settings.BoneVerticalAxis == 'PLUSX': 
                                         x =  vertical
@@ -1285,17 +1325,27 @@ class ReadInApplyToRigOperator(bpy.types.Operator):
                                         z =  vertical
                                     elif bone_settings.BoneVerticalAxis == 'NEGZ':
                                         z =  vertical*-1
+                                    if bone_settings.ApplyTranslationAlongMoreAxisVertical:
+                                        if bone_settings.BoneVerticalAxis == 'PLUSX' or bone_settings.BoneVerticalAxis == 'NEGX' and bone_settings.TranslationAlongMoreAxisVertical.x != 0: 
+                                            y = y + x*(bone_settings.TranslationAlongMoreAxisVertical.y/bone_settings.TranslationAlongMoreAxisVertical.x)
+                                            z = z + x*(bone_settings.TranslationAlongMoreAxisVertical.z/bone_settings.TranslationAlongMoreAxisVertical.x)
+                                        if bone_settings.BoneVerticalAxis == 'PLUSY' or bone_settings.BoneVerticalAxis == 'NEGY' and bone_settings.TranslationAlongMoreAxisVertical.y != 0: 
+                                            x = x + y*(bone_settings.TranslationAlongMoreAxisVertical.x/bone_settings.TranslationAlongMoreAxisVertical.y)
+                                            z = z + y*(bone_settings.TranslationAlongMoreAxisVertical.z/bone_settings.TranslationAlongMoreAxisVertical.y)
+                                        if bone_settings.BoneVerticalAxis == 'PLUSZ' or bone_settings.BoneVerticalAxis == 'NEGZ' and bone_settings.TranslationAlongMoreAxisVertical.z != 0: 
+                                            x = x + z*(bone_settings.TranslationAlongMoreAxisVertical.x/bone_settings.TranslationAlongMoreAxisVertical.z)
+                                            y = y + z*(bone_settings.TranslationAlongMoreAxisVertical.y/bone_settings.TranslationAlongMoreAxisVertical.z)
                                 bone.location.x = x
                                 bone.location.y = y
                                 bone.location.z = z
                     
                     #apply corrections END (un-does roll corrections)
-                    if bone_settings.RollCorrection:
-                        cAngle = get_correction_Angle(bone_settings.BoneRollCorrectionAxis, bone_settings.BoneRollCorrection)
-                        bone.rotation = bone.rotation @ cAngle.inverted()
-                    if bone_settings.RollCorrection2:
-                        cAngle = get_correction_Angle(bone_settings.BoneRollCorrectionAxis2, bone_settings.BoneRollCorrection2)
-                        bone.rotation_quaternion = bone.rotation_quaternion @ cAngle.inverted()
+#                    if bone_settings.RollCorrection:
+#                        cAngle = get_correction_Angle(bone_settings.BoneRollCorrectionAxis, bone_settings.BoneRollCorrection)
+#                        bone.rotation = bone.rotation @ cAngle.inverted()
+#                    if bone_settings.RollCorrection2:
+#                        cAngle = get_correction_Angle(bone_settings.BoneRollCorrectionAxis2, bone_settings.BoneRollCorrection2)
+#                        bone.rotation_quaternion = bone.rotation_quaternion @ cAngle.inverted()
                 
                 
                 FinalFrameNumber = op2rig.start_frame_to_apply + CurrentFrame
@@ -1404,16 +1454,24 @@ class LIST_OT_ReadInFile(bpy.types.Operator):
             bone.BoneModificationType = p['BoneModificationType']
             bone.ApplyToX = p['ApplyToX']
             bone.BoneHorizontalAxis = p['BoneHorizontalAxis']
+            bone.ApplyTranslationAlongMoreAxisHorizontal = p['ApplyTranslationAlongMoreAxisHorizontal']
+            bone.TranslationAlongMoreAxisHorizontal.x = p['TranslationAlongMoreAxisHorizontal_x']
+            bone.TranslationAlongMoreAxisHorizontal.y = p['TranslationAlongMoreAxisHorizontal_y']
+            bone.TranslationAlongMoreAxisHorizontal.z = p['TranslationAlongMoreAxisHorizontal_z']
             bone.ApplyToY = p['ApplyToY']
             bone.BoneVerticalAxis = p['BoneVerticalAxis']
+            bone.ApplyTranslationAlongMoreAxisVertical = p['ApplyTranslationAlongMoreAxisVertical']
+            bone.TranslationAlongMoreAxisVertical.x = p['TranslationAlongMoreAxisVertical_x']
+            bone.TranslationAlongMoreAxisVertical.y = p['TranslationAlongMoreAxisVertical_y']
+            bone.TranslationAlongMoreAxisVertical.z = p['TranslationAlongMoreAxisVertical_z']
             bone.ApplyToZ = p['ApplyToZ']
             bone.BoneTwistAxis = p['BoneTwistAxis']
-            bone.ApplyRollCorrection = p['ApplyRollCorrection']
-            bone.RollCorrection = p['RollCorrection']
-            bone.BoneRollCorrectionAxis = p['BoneRollCorrectionAxis']
-            bone.ApplyRollCorrection2 = p['ApplyRollCorrection2']
-            bone.RollCorrection2 = p['RollCorrection2']
-            bone.BoneRollCorrectionAxis2 = p['BoneRollCorrectionAxis2']
+#            bone.ApplyRollCorrection = p['ApplyRollCorrection']
+#            bone.RollCorrection = p['RollCorrection']
+#            bone.BoneRollCorrectionAxis = p['BoneRollCorrectionAxis']
+#            bone.ApplyRollCorrection2 = p['ApplyRollCorrection2']
+#            bone.RollCorrection2 = p['RollCorrection2']
+#            bone.BoneRollCorrectionAxis2 = p['BoneRollCorrectionAxis2']
             bone.UseCustomKeyFrameNumber = p['UseCustomKeyFrameNumber']
             bone.CustomBonKeyFrameNumber = p['CustomBonKeyFrameNumber']
 #            bone.RemoveParentBonesTranslationEffectCorrection = p['RemoveParentBonesTranslationEffectCorrection']
@@ -1494,16 +1552,24 @@ class LIST_OT_SaveToFile(bpy.types.Operator):
                 'BoneGain': bone.BoneGain,
                 'ApplyToX': bone.ApplyToX,
                 'BoneHorizontalAxis': bone.BoneHorizontalAxis,
+                'ApplyTranslationAlongMoreAxisHorizontal': bone.ApplyTranslationAlongMoreAxisHorizontal,
+                'TranslationAlongMoreAxisHorizontal_x': bone.TranslationAlongMoreAxisHorizontal.x,
+                'TranslationAlongMoreAxisHorizontal_y': bone.TranslationAlongMoreAxisHorizontal.y,
+                'TranslationAlongMoreAxisHorizontal_z': bone.TranslationAlongMoreAxisHorizontal.z,
                 'ApplyToY': bone.ApplyToY,
                 'BoneVerticalAxis': bone.BoneVerticalAxis,
+                'ApplyTranslationAlongMoreAxisVertical': bone.ApplyTranslationAlongMoreAxisVertical,
+                'TranslationAlongMoreAxisVertical_x': bone.TranslationAlongMoreAxisVertical.x,
+                'TranslationAlongMoreAxisVertical_y': bone.TranslationAlongMoreAxisVertical.y,
+                'TranslationAlongMoreAxisVertical_z': bone.TranslationAlongMoreAxisVertical.z,
                 'ApplyToZ': bone.ApplyToZ,
                 'BoneTwistAxis': bone.BoneTwistAxis,
-                'ApplyRollCorrection': bone.ApplyRollCorrection,
-                'RollCorrection': bone.RollCorrection,
-                'BoneRollCorrectionAxis': bone.BoneRollCorrectionAxis,
-                'ApplyRollCorrection2': bone.ApplyRollCorrection2,
-                'RollCorrection2': bone.RollCorrection2,
-                'BoneRollCorrectionAxis2': bone.BoneRollCorrectionAxis2,
+#                'ApplyRollCorrection': bone.ApplyRollCorrection,
+#                'RollCorrection': bone.RollCorrection,
+#                'BoneRollCorrectionAxis': bone.BoneRollCorrectionAxis,
+#                'ApplyRollCorrection2': bone.ApplyRollCorrection2,
+#                'RollCorrection2': bone.RollCorrection2,
+#                'BoneRollCorrectionAxis2': bone.BoneRollCorrectionAxis2,
                 'UseCustomKeyFrameNumber': bone.UseCustomKeyFrameNumber,
                 'CustomBonKeyFrameNumber': bone.CustomBonKeyFrameNumber,
 #                'RemoveParentBonesTranslationEffectCorrection': bone.RemoveParentBonesTranslationEffectCorrection,
@@ -1681,29 +1747,35 @@ class PanelTwo(OpenPoseToRigToolsPanel, bpy.types.Panel):
             if item.ApplyToX:
                 box = layout.box()
                 box.prop(item, "BoneHorizontalAxis")
+                box.prop(item, "ApplyTranslationAlongMoreAxisHorizontal")
+                if item.ApplyTranslationAlongMoreAxisHorizontal and item.BoneModificationType == 'LOC':
+                    box.prop(item, "TranslationAlongMoreAxisHorizontal")
             row = layout.row() 
             row.prop(item, "ApplyToY")
             if item.ApplyToY:
                 box = layout.box()
                 box.prop(item, "BoneVerticalAxis")
+                box.prop(item, "ApplyTranslationAlongMoreAxisVertical")
+                if item.ApplyTranslationAlongMoreAxisVertical and item.BoneModificationType == 'LOC':
+                    box.prop(item, "TranslationAlongMoreAxisVertical")
             row = layout.row() 
             if item.BoneModificationType == 'ROT':
                 row.prop(item, "ApplyToZ")
                 if item.ApplyToZ:
                     box = layout.box()
                     box.prop(item, "BoneTwistAxis")
-            row = layout.row() 
-            row.prop(item, "ApplyRollCorrection")
-            if item.ApplyRollCorrection:
-                box = layout.box()
-                box.prop(item, "BoneRollCorrectionAxis")
-                box.prop(item, "RollCorrection")
-            row = layout.row() 
-            row.prop(item, "ApplyRollCorrection2")
-            if item.ApplyRollCorrection2:
-                box = layout.box()
-                box.prop(item, "BoneRollCorrectionAxis2")
-                box.prop(item, "RollCorrection2")
+#            row = layout.row() 
+#            row.prop(item, "ApplyRollCorrection")
+#            if item.ApplyRollCorrection:
+#                box = layout.box()
+#                box.prop(item, "BoneRollCorrectionAxis")
+#                box.prop(item, "RollCorrection")
+#            row = layout.row() 
+#            row.prop(item, "ApplyRollCorrection2")
+#            if item.ApplyRollCorrection2:
+#                box = layout.box()
+#                box.prop(item, "BoneRollCorrectionAxis2")
+#                box.prop(item, "RollCorrection2")
             row = layout.row() 
             row.prop(item, "UseCustomKeyFrameNumber")
             if item.UseCustomKeyFrameNumber:
