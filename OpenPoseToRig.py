@@ -1303,13 +1303,13 @@ class ReadInApplyToRigOperator(bpy.types.Operator):
                                     elif bone_settings.BoneHorizontalAxis == 'NEGZ':
                                         z =  horizontal*-1
                                     if bone_settings.ApplyTranslationAlongMoreAxisHorizontal:
-                                        if bone_settings.BoneHorizontalAxis == 'PLUSX' or bone_settings.BoneHorizontalAxis == 'NEGX': 
+                                        if (bone_settings.BoneHorizontalAxis == 'PLUSX' or bone_settings.BoneHorizontalAxis == 'NEGX') and bone_settings.TranslationAlongMoreAxisHorizontal.x != 0:
                                             y = y + x*(bone_settings.TranslationAlongMoreAxisHorizontal.y/bone_settings.TranslationAlongMoreAxisHorizontal.x)
                                             z = z + x*(bone_settings.TranslationAlongMoreAxisHorizontal.z/bone_settings.TranslationAlongMoreAxisHorizontal.x)
-                                        if bone_settings.BoneHorizontalAxis == 'PLUSY' or bone_settings.BoneHorizontalAxis == 'NEGY': 
+                                        if (bone_settings.BoneHorizontalAxis == 'PLUSY' or bone_settings.BoneHorizontalAxis == 'NEGY') and bone_settings.TranslationAlongMoreAxisHorizontal.y != 0:
                                             x = x + y*(bone_settings.TranslationAlongMoreAxisHorizontal.x/bone_settings.TranslationAlongMoreAxisHorizontal.y)
                                             z = z + y*(bone_settings.TranslationAlongMoreAxisHorizontal.z/bone_settings.TranslationAlongMoreAxisHorizontal.y)
-                                        if bone_settings.BoneHorizontalAxis == 'PLUSZ' or bone_settings.BoneHorizontalAxis == 'NEGZ': 
+                                        if (bone_settings.BoneHorizontalAxis == 'PLUSZ' or bone_settings.BoneHorizontalAxis == 'NEGZ') and bone_settings.TranslationAlongMoreAxisHorizontal.z != 0:
                                             x = x + z*(bone_settings.TranslationAlongMoreAxisHorizontal.x/bone_settings.TranslationAlongMoreAxisHorizontal.z)
                                             y = y + z*(bone_settings.TranslationAlongMoreAxisHorizontal.y/bone_settings.TranslationAlongMoreAxisHorizontal.z)
                                 if bone_settings.ApplyToY:
@@ -1326,13 +1326,13 @@ class ReadInApplyToRigOperator(bpy.types.Operator):
                                     elif bone_settings.BoneVerticalAxis == 'NEGZ':
                                         z =  vertical*-1
                                     if bone_settings.ApplyTranslationAlongMoreAxisVertical:
-                                        if bone_settings.BoneVerticalAxis == 'PLUSX' or bone_settings.BoneVerticalAxis == 'NEGX' and bone_settings.TranslationAlongMoreAxisVertical.x != 0: 
+                                        if (bone_settings.BoneVerticalAxis == 'PLUSX' or bone_settings.BoneVerticalAxis == 'NEGX') and bone_settings.TranslationAlongMoreAxisVertical.x != 0: 
                                             y = y + x*(bone_settings.TranslationAlongMoreAxisVertical.y/bone_settings.TranslationAlongMoreAxisVertical.x)
                                             z = z + x*(bone_settings.TranslationAlongMoreAxisVertical.z/bone_settings.TranslationAlongMoreAxisVertical.x)
-                                        if bone_settings.BoneVerticalAxis == 'PLUSY' or bone_settings.BoneVerticalAxis == 'NEGY' and bone_settings.TranslationAlongMoreAxisVertical.y != 0: 
+                                        if (bone_settings.BoneVerticalAxis == 'PLUSY' or bone_settings.BoneVerticalAxis == 'NEGY') and bone_settings.TranslationAlongMoreAxisVertical.y != 0: 
                                             x = x + y*(bone_settings.TranslationAlongMoreAxisVertical.x/bone_settings.TranslationAlongMoreAxisVertical.y)
                                             z = z + y*(bone_settings.TranslationAlongMoreAxisVertical.z/bone_settings.TranslationAlongMoreAxisVertical.y)
-                                        if bone_settings.BoneVerticalAxis == 'PLUSZ' or bone_settings.BoneVerticalAxis == 'NEGZ' and bone_settings.TranslationAlongMoreAxisVertical.z != 0: 
+                                        if (bone_settings.BoneVerticalAxis == 'PLUSZ' or bone_settings.BoneVerticalAxis == 'NEGZ') and bone_settings.TranslationAlongMoreAxisVertical.z != 0: 
                                             x = x + z*(bone_settings.TranslationAlongMoreAxisVertical.x/bone_settings.TranslationAlongMoreAxisVertical.z)
                                             y = y + z*(bone_settings.TranslationAlongMoreAxisVertical.y/bone_settings.TranslationAlongMoreAxisVertical.z)
                                 bone.location.x = x
@@ -1505,6 +1505,7 @@ class LIST_OT_AutoReadInValues(bpy.types.Operator):
             op2rig.rig_name = rigname
         if len(context.selected_pose_bones) == 1:
             bonename = context.selected_pose_bones[0].name
+            #bone_list[index]. = context.selected_pose_bones[0].position.x
             if bone_list[index].name == '':
                 bone_list[index].name = bonename
             bone_list[index].DestinationBoneName = bonename
