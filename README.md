@@ -7,20 +7,20 @@ This section of the UI controls the aspects of the transfer from the source json
 
 ![Image of the Blender UI](https://github.com/nkeeline/OpenPose-to-Blender-Facial-Capture-Transfer/blob/master/Pictures/capturesettings.JPG)
 
-If you check the Facial Capture box it will map the facial bones to your rig via the mapping settings below.  
+>>If you check the Facial Capture box it will map the facial bones to your rig via the mapping settings below.  
 
-Apply Body Capture is a placeholder and doesn't do anything at this time.
+>>Apply Body Capture is a placeholder and doesn't do anything at this time.
 
-Tie Eyelids together makes the eyelids move in unison, it will mean the character cannot wink, but tieing them together may look more natural in most situations as eyelids are tiny and hard to track so tieing them together improves noise rejection.
+>>Tie Eyelids together makes the eyelids move in unison, it will mean the character cannot wink, but tieing them together may look more natural in most situations as eyelids are tiny and hard to track so tieing them together improves noise rejection.
 
-Number of samples is the 'max' number of files to transfer, if greater than the number of JSON files the transfer will stop at the number of files you have.  Lower this for testing etc.
+>>Number of samples is the 'max' number of files to transfer, if greater than the number of JSON files the transfer will stop at the number of files you have.  Lower this for testing etc.
 
-Starting frame is the frame in blender you wish to start applying the files to your rig.
+>>Starting frame is the frame in blender you wish to start applying the files to your rig.
 Mouth Keyframe number is the number of frames to keyframe, lower number such as 1 will keyframe every frame, but may be noisy, two high rejects noise but looses detail performance.
 
-Eye Keyframe number is same as mouth but only for the eyelids which are twitchy because they are small and hard to track in openpose, so they are broken out here.
+>>Eye Keyframe number is same as mouth but only for the eyelids which are twitchy because they are small and hard to track in openpose, so they are broken out here.
 
-Ear to Ear distance is a global distance that scales every bone's motion to reasonable distances.  Changing this number can make a performance more subtle or exaggerated.  There may still be a bug in the code on some characters where the displacement is way off, so change this number until you get the right amount of motion in your character.
+>>Ear to Ear distance is a global distance that scales every bone's motion to reasonable distances.  Changing this number can make a performance more subtle or exaggerated.  There may still be a bug in the code on some characters where the displacement is way off, so change this number until you get the right amount of motion in your character.
 
 Ignore Eyelid Flutter is a threshold that attempts to keep the eyelids from moving too quickly.  Change this if you see a lot of noise in the eyelids on transfer.
 # Bone Mapping
@@ -38,7 +38,7 @@ This is the button you press to map a series of files onto your rig:
 ![Image of the Blender UI](https://github.com/nkeeline/OpenPose-to-Blender-Facial-Capture-Transfer/blob/master/Pictures/Run.JPG)
 
 # OpenPose-to-Blender-Facial-Capture-Transfer
-This blender Python Script maps an OpenPose Facial Capture to a blender facial Rig
+This lower section is the documentation for the scripts used in the tutorials.  This script method is old methods before the blender addon gui was completed.  I did not remove these files since some people may still want to do the tutorial as it was shown.
 
 [Example](https://www.youtube.com/watch?v=bzGW4TDXE-0)
 
