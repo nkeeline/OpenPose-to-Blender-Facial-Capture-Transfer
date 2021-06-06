@@ -20,7 +20,7 @@ bl_info = {
     "name": "OpenPose To Rig",
     "description": "Tools for moving openpose motions to a rig",
     "author": "Nick Keeline",
-    "version": (0, 0, 0),
+    "version": (1, 0, 0),
     "blender": (2, 83, 0),
     "location": "3D View > Tools",
     "warning": "", # used for warning icon and text in addons panel
