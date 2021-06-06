@@ -6,7 +6,10 @@ Download the release from the releases section and unzip to a single zip file.  
 This section of the UI controls the aspects of the transfer from the source json files to the rig.
 
 ![Image of the Blender UI](https://github.com/nkeeline/OpenPose-to-Blender-Facial-Capture-Transfer/blob/master/Pictures/capturesettings.JPG)
-If you check the Facial Capture box it will map the facial bones to your rig via the mapping settings below.  Apply Body Capture is a placeholder and doesn't do anything at this time.
+
+If you check the Facial Capture box it will map the facial bones to your rig via the mapping settings below.  
+
+Apply Body Capture is a placeholder and doesn't do anything at this time.
 
 Tie Eyelids together makes the eyelids move in unison, it will mean the character cannot wink, but tieing them together may look more natural in most situations as eyelids are tiny and hard to track so tieing them together improves noise rejection.
 
