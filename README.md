@@ -1,6 +1,12 @@
 # Released official Blender Addon with UI for use as a Openpose to rig facial capture.
 Download the release from the releases section and unzip to a single zip file.  You need to make sure there isn't a zip file inside the one you download, only a folder.  Then go to Blender Preferences, hit the install button and select the zip file.  In pose mode you will now have a new ui show up with a tab called openpose2rig in blender.  You can then map openpose bones to your rig.   I'm sorry, normally I have a tutorial on how to use the addon, but we're using it production and the team is trained on it's use so no need at this point, just know that if you futz around you can map openpose facial outputs to your rigs facial bones and save out the mapping file for future use.
 
+![Image of the Blender UI](https://github.com/nkeeline/OpenPose-to-Blender-Facial-Capture-Transfer/blob/master/Pictures/capturesettings.JPG)
+
+![Image of the Blender UI](https://github.com/nkeeline/OpenPose-to-Blender-Facial-Capture-Transfer/blob/master/Pictures/BoneMapping.JPG)
+
+![Image of the Blender UI](https://github.com/nkeeline/OpenPose-to-Blender-Facial-Capture-Transfer/blob/master/Pictures/Run.JPG)
+
 # OpenPose-to-Blender-Facial-Capture-Transfer
 This blender Python Script maps an OpenPose Facial Capture to a blender facial Rig
 
