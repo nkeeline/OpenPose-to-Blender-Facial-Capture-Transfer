@@ -2,20 +2,30 @@
 Download the release from the releases section and unzip to a single zip file.  You need to make sure there isn't a zip file inside the one you download, only a folder.  Then go to Blender Preferences, hit the install button and select the zip file.  In pose mode you will now have a new ui show up with a tab called openpose2rig in blender.  You can then map openpose bones to your rig.   I'm sorry, normally I have a tutorial on how to use the addon, but we're using it production and the team is trained on it's use so no need at this point, just know that if you futz around you can map openpose facial outputs to your rigs facial bones and save out the mapping file for future use.
 
 # UI Overview
-# Capture Settings
+# Transfer Settings
 This section of the UI controls the aspects of the transfer from the source json files to the rig.
 
 ![Image of the Blender UI](https://github.com/nkeeline/OpenPose-to-Blender-Facial-Capture-Transfer/blob/master/Pictures/capturesettings.JPG)
+If you check the Facial Capture box it will map the facial bones to your rig via the mapping settings below.  Apply Body Capture is a placeholder and doesn't do anything at this time.
+Tie Eyelids together makes the eyelids move in unison, it will mean the character cannot wink, but tieing them together may look more natural in most situations as eyelids are tiny and hard to track so tieing them together improves noise rejection.
+Number of samples is the 'max' number of files to transfer, if greater than the number of JSON files the transfer will stop at the number of files you have.  Lower this for testing etc.
+Starting frame is the frame in blender you wish to start applying the files to your rig.
+Mouth Keyframe number is the number of frames to keyframe, lower number such as 1 will keyframe every frame, but may be noisy, two high rejects noise but looses detail performance.
+Eye Keyframe number is same as mouth but only for the eyelids which are twitchy because they are small and hard to track in openpose, so they are broken out here.
+Ear to Ear distance is a global distance that scales every bone's motion to reasonable distances.  Changing this number can make a performance more subtle or exaggerated.  There may still be a bug in the code on some characters where the displacement is way off, so change this number until you get the right amount of motion in your character.
+Ignore Eyelid Flutter is a threshold that attempts to keep the eyelids from moving too quickly.  Change this if you see a lot of noise in the eyelids on transfer.
 # Bone Mapping
 To map the json openpose 2d data to your rig create a mapping from source to bone using this ui.  You can browse to a file and click the save button to save your bone mapping out to an external json text file:
 
 ![Image of the Blender UI](https://github.com/nkeeline/OpenPose-to-Blender-Facial-Capture-Transfer/blob/master/Pictures/BoneMapping.JPG)
 
 Below is the list of all the mappings you can pick from the source JSON onto your rig:
+
 ![Image of the Blender UI](https://github.com/nkeeline/OpenPose-to-Blender-Facial-Capture-Transfer/blob/master/Pictures/sourceBoneTypes.JPG)
 
 # Master 'GO' Button
 This is the button you press to map a series of files onto your rig:
+
 ![Image of the Blender UI](https://github.com/nkeeline/OpenPose-to-Blender-Facial-Capture-Transfer/blob/master/Pictures/Run.JPG)
 
 # OpenPose-to-Blender-Facial-Capture-Transfer
